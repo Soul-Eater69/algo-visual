@@ -143,7 +143,7 @@ export async function analyzeAlgorithm(code: string, apiKey: string): Promise<An
     apiKey,
     model: 'gpt-4o',
     temperature: 0.1,
-    maxTokens: 8000,
+    maxTokens: 16000,
   });
 
   const prompt = ChatPromptTemplate.fromMessages([
@@ -153,13 +153,44 @@ export async function analyzeAlgorithm(code: string, apiKey: string): Promise<An
 
   const chain = prompt.pipe(model).pipe(new StringOutputParser());
 
-  const result = await chain.invoke({ code });
+  const raw = await chain.invoke({ code });
 
   try {
-    const cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const parsed = JSON.parse(cleaned) as AnalysisResult;
+    const json = extractJSON(raw);
+    const parsed = JSON.parse(json) as AnalysisResult;
     return parsed;
-  } catch {
-    throw new Error('Failed to parse AI response. Please try again.');
+  } catch (e) {
+    const preview = raw.slice(0, 300);
+    throw new Error(`Failed to parse AI response. Preview: ${preview}`);
   }
+}
+
+/** Extract the outermost JSON object from a string that may contain markdown fences or surrounding text. */
+function extractJSON(raw: string): string {
+  // Strip markdown code fences
+  let s = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+
+  // Find first '{'
+  const start = s.indexOf('{');
+  if (start === -1) throw new Error('No JSON object found');
+
+  // Walk forward counting braces, respecting strings
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return s.slice(start, i + 1);
+    }
+  }
+
+  throw new Error('Unterminated JSON object (response may have been cut off)');
 }

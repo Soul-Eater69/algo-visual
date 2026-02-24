@@ -18,6 +18,7 @@ const CATEGORY_COLORS: Record<AlgoCategory, string> = {
   'greedy': '#eab308',
   'string': '#6366f1',
   'heap': '#10b981',
+  'divide-and-conquer': '#f97316',
   'unknown': '#6b7280',
 };
 
@@ -37,7 +38,7 @@ Code:
 
 Return a JSON object with this EXACT structure:
 {{
-  "category": one of ["dynamic-programming", "tree", "graph", "array", "two-pointers", "sliding-window", "stack", "queue", "linked-list", "binary-search", "backtracking", "greedy", "string", "heap", "unknown"],
+  "category": one of ["dynamic-programming", "tree", "graph", "array", "two-pointers", "sliding-window", "stack", "queue", "linked-list", "binary-search", "backtracking", "greedy", "string", "heap", "divide-and-conquer", "unknown"],
   "categoryLabel": human readable category name,
   "problemName": inferred problem name or "Algorithm Analysis",
   "complexity": {{
@@ -96,13 +97,27 @@ Return a JSON object with this EXACT structure:
         "items": [values],
         "operation": "push"/"pop"/"enqueue"/"dequeue"/"peek" or null,
         "operationValue": value or null
+      }},
+
+      // For divide-and-conquer (merge sort, quick sort, etc.):
+      "recursionTreeState": {{
+        "phase": "dividing" or "merging",
+        "root": {{
+          "id": "unique-string-id",
+          "array": [values in this subarray],
+          "phase": "splitting" or "merging" or "sorted",
+          "current": true or false,
+          "children": [
+            {{ same node structure, recursively }}
+          ]
+        }}
       }}
     }}
   ]
 }}
 
 IMPORTANT RULES:
-1. Generate 6-15 meaningful steps that show the algorithm executing on a SMALL example input
+1. Generate 8-14 meaningful steps that show the algorithm executing on a SMALL example input
 2. For DP: use a small input like nums=[1,2,3,4,5] or s="abcde"
 3. For Trees: show a tree with 5-7 nodes
 4. For Graphs: show a graph with 4-6 nodes
@@ -111,7 +126,17 @@ IMPORTANT RULES:
 7. Make the visualization educational and show exactly HOW the algorithm works
 8. codeHighlight lines must be valid 1-indexed line numbers from the actual code
 9. variables should show the key variables at each step with their current values
-10. The steps should tell a complete story of the algorithm execution`;
+10. The steps should tell a complete story of the algorithm execution
+11. DIVIDE-AND-CONQUER RULES (merge sort, quick sort, etc.):
+    - Always use category "divide-and-conquer"
+    - Always use "recursionTreeState" (NOT arrayState) to show the recursion tree
+    - Use input array of exactly 6-7 elements (e.g. [38, 27, 43, 3, 9, 82, 10] for merge sort)
+    - Build the tree step by step: first show just the root, then add children as splits happen
+    - Each node "id" must be unique (e.g. "root", "left", "right", "left-left", "left-right", etc.)
+    - Mark the node currently being processed as "current": true; all others "current": false
+    - Phase of root recursionTreeState: "dividing" during splits, "merging" during combines
+    - Node phase: "splitting" while being split, "merging" while being merged, "sorted" when complete
+    - Show at least 4 splitting steps and 4 merging steps so users see both phases clearly`;
 
 export async function analyzeAlgorithm(code: string, apiKey: string): Promise<AnalysisResult> {
   const model = new ChatOpenAI({

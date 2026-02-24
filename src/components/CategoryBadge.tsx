@@ -22,6 +22,7 @@ const CATEGORY_CONFIG: Record<AlgoCategory, { color: string; bg: string; border:
   'greedy':             { color: '#eab308', bg: 'rgba(234, 179, 8, 0.15)',  border: 'rgba(234, 179, 8, 0.4)',  icon: '💰' },
   'string':             { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', border: 'rgba(99, 102, 241, 0.4)', icon: '📝' },
   'heap':               { color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.4)', icon: '⛰️' },
+  'divide-and-conquer': { color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.4)', icon: '⚔️' },
   'unknown':            { color: '#6b7280', bg: 'rgba(107, 114, 128, 0.15)',border: 'rgba(107, 114, 128, 0.4)',icon: '❓' },
 };
 

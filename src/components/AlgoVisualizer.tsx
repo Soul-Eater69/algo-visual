@@ -6,6 +6,7 @@ import TreeVisualizer from './visualizers/TreeVisualizer';
 import GraphVisualizer from './visualizers/GraphVisualizer';
 import ArrayVisualizer from './visualizers/ArrayVisualizer';
 import StackQueueVisualizer from './visualizers/StackQueueVisualizer';
+import RecursionTreeVisualizer from './visualizers/RecursionTreeVisualizer';
 import GenericVisualizer from './visualizers/GenericVisualizer';
 
 interface AlgoVisualizerProps {
@@ -38,6 +39,16 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
             stepNumber={step.stepNumber}
           />
         );
+      }
+      break;
+
+    case 'divide-and-conquer':
+      if (step.recursionTreeState) {
+        return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
+      }
+      // Fallback to array if no recursionTreeState provided
+      if (step.arrayState) {
+        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       }
       break;
 
@@ -106,17 +117,20 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
 
 export default function AlgoVisualizer({ step, result }: AlgoVisualizerProps) {
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={step.stepNumber}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="w-full h-full flex items-center justify-center"
-      >
-        <VisualizerContent step={step} result={result} />
-      </motion.div>
-    </AnimatePresence>
+    // Crossfade: exiting element goes absolute so new content shows without a blank gap
+    <div className="relative w-full">
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={step.stepNumber}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }}
+          transition={{ duration: 0.22, ease: 'easeInOut' }}
+          className="w-full flex items-center justify-center"
+        >
+          <VisualizerContent step={step} result={result} />
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }

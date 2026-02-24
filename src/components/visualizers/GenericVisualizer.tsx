@@ -22,6 +22,7 @@ const CATEGORY_ICONS: Record<AlgoCategory, string> = {
   'greedy': '💰',
   'string': '📝',
   'heap': '⛰️',
+  'divide-and-conquer': '⚔️',
   'unknown': '❓',
 };
 

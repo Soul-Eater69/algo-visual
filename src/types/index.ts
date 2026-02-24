@@ -13,6 +13,7 @@ export type AlgoCategory =
   | 'greedy'
   | 'string'
   | 'heap'
+  | 'divide-and-conquer'
   | 'unknown';
 
 export interface DPState {
@@ -75,6 +76,19 @@ export interface StackQueueState {
   operationValue?: number | string;
 }
 
+export interface RecursionNode {
+  id: string;
+  array: (number | string)[];
+  phase: 'splitting' | 'merging' | 'sorted';
+  current?: boolean;
+  children?: RecursionNode[];
+}
+
+export interface RecursionTreeState {
+  root: RecursionNode;
+  phase: 'dividing' | 'merging';
+}
+
 export interface VisualizationStep {
   stepNumber: number;
   description: string;
@@ -85,6 +99,7 @@ export interface VisualizationStep {
   graphState?: { nodes: GraphNodeData[]; edges: GraphEdgeData[] };
   arrayState?: ArrayState;
   stackQueueState?: StackQueueState;
+  recursionTreeState?: RecursionTreeState;
 }
 
 export interface AnalysisResult {

@@ -543,13 +543,14 @@ export default function Home() {
                   </div>
 
                   {/* Step description + variables */}
-                  <AnimatePresence mode="wait">
+                  <div className="relative">
+                  <AnimatePresence mode="sync">
                     <motion.div
                       key={currentStep}
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
                       className="glass rounded-2xl p-5 flex flex-col gap-4"
                     >
                       <div className="flex items-start gap-3">
@@ -579,6 +580,7 @@ export default function Home() {
                       )}
                     </motion.div>
                   </AnimatePresence>
+                  </div>
 
                   {/* Step controls */}
                   <div className="glass rounded-2xl p-4">

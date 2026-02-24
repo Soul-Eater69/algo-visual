@@ -115,8 +115,8 @@ IMPORTANT RULES:
 
 export async function analyzeAlgorithm(code: string, apiKey: string): Promise<AnalysisResult> {
   const model = new ChatOpenAI({
-    openAIApiKey: apiKey,
-    modelName: 'gpt-4o',
+    apiKey,
+    model: 'gpt-4o',
     temperature: 0.1,
     maxTokens: 8000,
   });

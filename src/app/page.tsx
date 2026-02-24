@@ -161,6 +161,13 @@ function EyeOffIcon() {
   );
 }
 
+function formatVar(v: unknown): string {
+  if (v === null || v === undefined) return 'null';
+  if (Array.isArray(v)) return `[${(v as unknown[]).map(x => x === null ? 'null' : String(x)).join(', ')}]`;
+  if (typeof v === 'object') return JSON.stringify(v);
+  return String(v as string | number | boolean);
+}
+
 export default function Home() {
   const [code, setCode] = useState('');
   const [apiKeyInput, setApiKeyInput] = useState('');
@@ -238,6 +245,7 @@ export default function Home() {
     setResult(null);
     setCurrentStep(0);
     setIsPlaying(false);
+    setActiveTab('visualization'); // show spinner immediately on mobile
 
     try {
       const res = await fetch('/api/analyze', {
@@ -354,7 +362,7 @@ export default function Home() {
         )}
 
         {/* ── Mobile tab switcher ──────────────────────── */}
-        {result && (
+        {(result || loading) && (
           <div className="flex lg:hidden rounded-xl overflow-hidden border border-slate-800 mb-4">
             {(['editor', 'visualization'] as const).map((tab) => (
               <button
@@ -373,14 +381,14 @@ export default function Home() {
         )}
 
         {/* ── Main two-column layout ───────────────────── */}
-        <div className={`flex gap-5 ${result ? 'flex-col lg:flex-row' : 'flex-col max-w-3xl mx-auto'}`}>
+        <div className={`flex gap-5 ${(result || loading) ? 'flex-col lg:flex-row' : 'flex-col max-w-3xl mx-auto'}`}>
 
           {/* ── LEFT: Editor panel ───────────────────── */}
           <div
             className={`
               flex flex-col gap-3
-              ${result ? 'lg:w-[430px] lg:flex-shrink-0' : 'w-full'}
-              ${result && activeTab !== 'editor' ? 'hidden lg:flex' : 'flex'}
+              ${(result || loading) ? 'lg:w-[430px] lg:flex-shrink-0' : 'w-full'}
+              ${(result || loading) && activeTab !== 'editor' ? 'hidden lg:flex' : 'flex'}
             `}
           >
             {/* Code editor */}
@@ -513,7 +521,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               className={`
                 flex-1 flex flex-col gap-3 min-w-0
-                ${result && activeTab !== 'visualization' ? 'hidden lg:flex' : 'flex'}
+                ${(result || loading) && activeTab !== 'visualization' ? 'hidden lg:flex' : 'flex'}
               `}
             >
               {loading ? (
@@ -572,7 +580,7 @@ export default function Home() {
                               >
                                 <span className="text-sky-400">{k}</span>
                                 <span className="text-slate-600">=</span>
-                                <span className="text-amber-300">{String(v)}</span>
+                                <span className="text-amber-300">{formatVar(v)}</span>
                               </motion.div>
                             ))}
                           </div>

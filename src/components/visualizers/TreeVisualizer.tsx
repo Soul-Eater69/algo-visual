@@ -94,13 +94,25 @@ function getNodeColor(node: TreeNodeData): { fill: string; stroke: string; text:
 
 export default function TreeVisualizer({ treeData, stepNumber }: TreeVisualizerProps) {
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // Guard: malformed treeData
+  if (!treeData || treeData.value === undefined) {
+    return <div className="flex items-center justify-center p-8 text-slate-500 text-sm">No tree data</div>;
+  }
+
   const { positions, edges, width } = layoutTree(treeData, 0, { value: 0 }, [], []);
 
   const padding = 60;
   const nodeRadius = 24;
+
+  // Guard: empty positions (degenerate tree)
+  if (positions.length === 0) {
+    return <div className="flex items-center justify-center p-8 text-slate-500 text-sm">Empty tree</div>;
+  }
+
   const svgWidth = Math.max(width + padding * 2, 400);
   const maxDepth = Math.max(...positions.map(p => p.y));
-  const svgHeight = maxDepth + padding * 2 + nodeRadius * 2;
+  const svgHeight = Math.max(maxDepth + padding * 2 + nodeRadius * 2, 200);
 
   // Center the tree
   const minX = Math.min(...positions.map(p => p.x));

@@ -45,7 +45,9 @@ function autoLayout(nodes: GraphNodeData[]): Map<string, { x: number; y: number 
 }
 
 export default function GraphVisualizer({ nodes, edges, stepNumber }: GraphVisualizerProps) {
-  const positions = useMemo(() => autoLayout(nodes), [nodes]);
+  const safeNodes = nodes ?? [];
+  const safeEdges = edges ?? [];
+  const positions = useMemo(() => autoLayout(safeNodes), [safeNodes]);
   const nodeRadius = 26;
   const svgWidth = 500;
   const svgHeight = 400;
@@ -83,7 +85,7 @@ export default function GraphVisualizer({ nodes, edges, stepNumber }: GraphVisua
           </defs>
 
           {/* Edges */}
-          {edges.map((edge, i) => {
+          {safeEdges.map((edge, i) => {
             const from = positions.get(edge.from);
             const to = positions.get(edge.to);
             if (!from || !to) return null;
@@ -91,6 +93,7 @@ export default function GraphVisualizer({ nodes, edges, stepNumber }: GraphVisua
             const dx = to.x - from.x;
             const dy = to.y - from.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist === 0) return null; // self-loop: skip
             const ux = dx / dist;
             const uy = dy / dist;
 
@@ -117,7 +120,7 @@ export default function GraphVisualizer({ nodes, edges, stepNumber }: GraphVisua
           })}
 
           {/* Edge weights */}
-          {edges.map((edge, i) => {
+          {safeEdges.map((edge, i) => {
             if (!edge.weight) return null;
             const from = positions.get(edge.from);
             const to = positions.get(edge.to);
@@ -132,7 +135,7 @@ export default function GraphVisualizer({ nodes, edges, stepNumber }: GraphVisua
           })}
 
           {/* Nodes */}
-          {nodes.map((node, i) => {
+          {safeNodes.map((node, i) => {
             const pos = positions.get(node.id);
             if (!pos) return null;
             const colors = getNodeColor(node);

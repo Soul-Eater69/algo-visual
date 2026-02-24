@@ -17,107 +17,67 @@ interface AlgoVisualizerProps {
 function VisualizerContent({ step, result }: AlgoVisualizerProps) {
   const { category } = result;
 
+  // Primary routing by category
   switch (category) {
     case 'dynamic-programming':
-      if (step.dpState) {
-        return <DPVisualizer state={step.dpState} stepNumber={step.stepNumber} />;
-      }
+      if (step.dpState) return <DPVisualizer state={step.dpState} stepNumber={step.stepNumber} />;
       break;
-
     case 'tree':
-      if (step.treeState) {
-        return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
-      }
+      if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
       break;
-
     case 'graph':
-      if (step.graphState) {
-        return (
-          <GraphVisualizer
-            nodes={step.graphState.nodes}
-            edges={step.graphState.edges}
-            stepNumber={step.stepNumber}
-          />
-        );
-      }
+      if (step.graphState) return <GraphVisualizer nodes={step.graphState.nodes ?? []} edges={step.graphState.edges ?? []} stepNumber={step.stepNumber} />;
       break;
-
     case 'divide-and-conquer':
-      if (step.recursionTreeState) {
-        return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
-      }
-      // Fallback to array if no recursionTreeState provided
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
-      }
+      if (step.recursionTreeState) return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       break;
-
     case 'array':
     case 'greedy':
     case 'string':
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
-      }
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       break;
-
     case 'two-pointers':
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="two-pointers" />;
-      }
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="two-pointers" />;
       break;
-
     case 'sliding-window':
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="sliding-window" />;
-      }
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="sliding-window" />;
       break;
-
     case 'binary-search':
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="binary-search" />;
-      }
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="binary-search" />;
       break;
-
     case 'stack':
-      if (step.stackQueueState) {
-        return <StackQueueVisualizer state={{ ...step.stackQueueState, type: 'stack' }} stepNumber={step.stepNumber} />;
-      }
+      if (step.stackQueueState) return <StackQueueVisualizer state={{ ...step.stackQueueState, type: 'stack' }} stepNumber={step.stepNumber} />;
       break;
-
     case 'queue':
-      if (step.stackQueueState) {
-        return <StackQueueVisualizer state={{ ...step.stackQueueState, type: 'queue' }} stepNumber={step.stepNumber} />;
-      }
+      if (step.stackQueueState) return <StackQueueVisualizer state={{ ...step.stackQueueState, type: 'queue' }} stepNumber={step.stepNumber} />;
       break;
-
     case 'heap':
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
-      }
-      if (step.treeState) {
-        return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
-      }
+      if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       break;
-
     case 'linked-list':
-      if (step.arrayState) {
-        return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
-      }
+      if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       break;
-
     case 'backtracking':
-      if (step.treeState) {
-        return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
-      }
+      if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
       break;
   }
+
+  // Smart fallback: use any available state, regardless of category mismatch.
+  // This prevents a blank canvas when GPT returns the right data under the wrong key.
+  if (step.recursionTreeState) return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
+  if (step.graphState?.nodes?.length) return <GraphVisualizer nodes={step.graphState.nodes} edges={step.graphState.edges ?? []} stepNumber={step.stepNumber} />;
+  if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
+  if (step.dpState?.table) return <DPVisualizer state={step.dpState} stepNumber={step.stepNumber} />;
+  if (step.stackQueueState) return <StackQueueVisualizer state={step.stackQueueState} stepNumber={step.stepNumber} />;
+  if (step.arrayState?.array) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
 
   return <GenericVisualizer step={step} category={category} />;
 }
 
 export default function AlgoVisualizer({ step, result }: AlgoVisualizerProps) {
   return (
-    // Crossfade: exiting element goes absolute so new content shows without a blank gap
     <div className="relative w-full">
       <AnimatePresence mode="sync">
         <motion.div

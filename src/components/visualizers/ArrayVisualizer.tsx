@@ -59,7 +59,11 @@ function getCellStyle(
 }
 
 export default function ArrayVisualizer({ state, stepNumber, mode = 'array' }: ArrayVisualizerProps) {
-  const { array, pointers = [], window } = state;
+  const { array = [], pointers = [], window } = state;
+
+  if (array.length === 0) {
+    return <div className="flex items-center justify-center p-8 text-slate-500 text-sm">Empty array</div>;
+  }
 
   return (
     <div className="flex flex-col items-center gap-8 p-6 w-full">
@@ -91,7 +95,7 @@ export default function ArrayVisualizer({ state, stepNumber, mode = 'array' }: A
         {array.map((val, i) => {
           const cellStyle = getCellStyle(i, state);
           const pointerHere = pointers.filter(p => p.index === i);
-          const barHeight = typeof val === 'number' ? Math.max(20, Math.min(80, val * 8)) : 40;
+          const barHeight = typeof val === 'number' ? Math.max(20, Math.min(80, Math.abs(val) * 8)) : 40;
 
           return (
             <motion.div
@@ -154,7 +158,7 @@ export default function ArrayVisualizer({ state, stepNumber, mode = 'array' }: A
                     exit={{ scale: 0.5, opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    {String(val)}
+                    {val === null || val === undefined ? '∅' : String(val)}
                   </motion.span>
                 </AnimatePresence>
               </motion.div>

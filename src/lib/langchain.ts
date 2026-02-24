@@ -143,7 +143,10 @@ function extractJSON(raw: string): string {
     if (ch === '{') depth++;
     else if (ch === '}') {
       depth--;
-      if (depth === 0) return s.slice(start, i + 1);
+      if (depth === 0) {
+        // Strip trailing commas before ] or } — invalid JSON GPT sometimes emits
+        return s.slice(start, i + 1).replace(/,(\s*[}\]])/g, '$1');
+      }
     }
   }
 

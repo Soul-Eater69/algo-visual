@@ -25,7 +25,7 @@ const ACTIVE_STYLE = {
 };
 
 function nodeWidth(node: RecursionNode): number {
-  return Math.max(node.array.length * CELL_W + NODE_H_PAD * 2, 60);
+  return Math.max((node.array?.length ?? 1) * CELL_W + NODE_H_PAD * 2, 60);
 }
 
 function nodeHeight(): number {
@@ -80,8 +80,16 @@ function buildEdges(items: LayoutItem[]): EdgeData[] {
 }
 
 export default function RecursionTreeVisualizer({ state, stepNumber }: RecursionTreeVisualizerProps) {
+  if (!state?.root) {
+    return <div className="flex items-center justify-center p-8 text-slate-500 text-sm">No recursion data</div>;
+  }
+
   const items: LayoutItem[] = [];
   buildLayout(state.root, 0, 0, items);
+
+  if (items.length === 0) {
+    return <div className="flex items-center justify-center p-8 text-slate-500 text-sm">Empty tree</div>;
+  }
 
   const nh = nodeHeight();
   const margin = 24;
@@ -161,7 +169,7 @@ export default function RecursionTreeVisualizer({ state, stepNumber }: Recursion
                       boxShadow: glow ?? 'none',
                     }}
                   >
-                    {node.array.map((val, i) => (
+                    {(node.array ?? []).map((val, i) => (
                       <motion.div
                         key={`${node.id}-${i}`}
                         initial={{ scale: 0.6, opacity: 0 }}

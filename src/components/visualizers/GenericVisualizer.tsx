@@ -23,6 +23,7 @@ const CATEGORY_ICONS: Record<AlgoCategory, string> = {
   'string': '📝',
   'heap': '⛰️',
   'divide-and-conquer': '⚔️',
+  'hash-map': '🗂️',
   'unknown': '❓',
 };
 

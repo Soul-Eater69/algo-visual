@@ -19,6 +19,7 @@ const CATEGORY_COLORS: Record<AlgoCategory, string> = {
   'string': '#6366f1',
   'heap': '#10b981',
   'divide-and-conquer': '#f97316',
+  'hash-map': '#06b6d4',
   'unknown': '#6b7280',
 };
 
@@ -38,7 +39,7 @@ Code:
 
 Return a JSON object with this EXACT structure:
 {{
-  "category": one of ["dynamic-programming", "tree", "graph", "array", "two-pointers", "sliding-window", "stack", "queue", "linked-list", "binary-search", "backtracking", "greedy", "string", "heap", "divide-and-conquer", "unknown"],
+  "category": one of ["dynamic-programming", "tree", "graph", "array", "two-pointers", "sliding-window", "stack", "queue", "linked-list", "binary-search", "backtracking", "greedy", "string", "heap", "divide-and-conquer", "hash-map", "unknown"],
   "categoryLabel": human readable category name,
   "problemName": inferred problem name or "Algorithm Analysis",
   "complexity": {{
@@ -58,7 +59,8 @@ Return a JSON object with this EXACT structure:
       "graphState": {{ "nodes": [{{"id":"0","label":"0","visited":false,"current":false,"inQueue":false}},...], "edges": [{{"from":"0","to":"1","directed":true,"highlighted":false}},...] }},
       "arrayState": {{ "array": [values], "pointers": [{{"name":"left","index":0,"color":"#ec4899"}},...], "highlighted": [indices], "window": [start,end] or null, "comparing": [i,j] or [], "swapping": [i,j] or null }},
       "stackQueueState": {{ "type": "stack" or "queue", "items": [values], "operation": "push"/"pop"/"enqueue"/"dequeue"/"peek" or null, "operationValue": value or null }},
-      "recursionTreeState": {{ "phase": "dividing" or "merging", "root": {{ "id": "unique-id", "array": [values], "phase": "splitting"/"merging"/"sorted", "current": true/false, "children": [...] }} }}
+      "recursionTreeState": {{ "phase": "dividing" or "merging", "root": {{ "id": "unique-id", "array": [values], "phase": "splitting"/"merging"/"sorted", "current": true/false, "children": [...] }} }},
+      "hashMapState": {{ "entries": [{{"key": key, "value": value, "highlighted": true/false, "isNew": true/false}},...], "currentKey": key or null, "operation": "insert"/"lookup"/"delete" or null, "result": value or null }}
     }}
   ]
 }}
@@ -75,7 +77,16 @@ IMPORTANT RULES:
 9. variables should show the key variables at each step with their current values
 10. The steps should tell a complete story of the algorithm execution
 11. OUTPUT ONLY THE JSON OBJECT — no // comments, no prose before or after
-11. DIVIDE-AND-CONQUER RULES (merge sort, quick sort, etc.):
+12. HASH-MAP RULES (Two Sum, Group Anagrams, Subarray Sum, Valid Anagram, Longest Consecutive, etc.):
+    - Always use category "hash-map"
+    - Always use "hashMapState" to show the map contents at each step
+    - Show entries accumulating as the algorithm runs (start empty, add one-by-one)
+    - For each step, set "isNew": true only on the entry just inserted that step; all others false
+    - Set "highlighted": true and "operation": "lookup" on the entry being checked/matched
+    - Set "currentKey" to the key being processed; "result" to the found value when a match occurs
+    - Use a small example: nums=[2,7,11,15], target=9 for Two Sum
+    - Show at least 6 steps: initial state, each insertion with lookup check
+13. DIVIDE-AND-CONQUER RULES (merge sort, quick sort, etc.):
     - Always use category "divide-and-conquer"
     - Always use "recursionTreeState" (NOT arrayState) to show the recursion tree
     - Use input array of exactly 6-7 elements (e.g. [38, 27, 43, 3, 9, 82, 10] for merge sort)
@@ -104,7 +115,7 @@ export async function analyzeAlgorithm(code: string, apiKey: string): Promise<An
   const raw = await chain.invoke({ code });
 
   try {
-    const json = extractJSON(raw);
+    const json = sanitizeJSON(extractJSON(raw));
     const parsed = JSON.parse(json) as AnalysisResult;
     return parsed;
   } catch (e) {
@@ -151,6 +162,33 @@ function extractJSON(raw: string): string {
   }
 
   throw new Error('Unterminated JSON object (response may have been cut off)');
+}
+
+/**
+ * Replace literal control characters (real newlines, tabs, etc.) that appear
+ * INSIDE JSON strings with their proper JSON escape sequences.
+ * GPT sometimes emits "description": "line1\nline2" with actual newlines,
+ * which is invalid JSON.
+ */
+function sanitizeJSON(s: string): string {
+  let out = '';
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    const code = s.charCodeAt(i);
+    if (escape) { out += ch; escape = false; continue; }
+    if (ch === '\\' && inString) { out += ch; escape = true; continue; }
+    if (ch === '"') { inString = !inString; out += ch; continue; }
+    if (inString) {
+      if (code === 10) { out += '\\n'; continue; }
+      if (code === 13) { out += '\\r'; continue; }
+      if (code === 9)  { out += '\\t'; continue; }
+      if (code < 0x20) { out += `\\u${code.toString(16).padStart(4, '0')}`; continue; }
+    }
+    out += ch;
+  }
+  return out;
 }
 
 /** Remove // single-line comments while respecting quoted strings. */

@@ -14,6 +14,7 @@ export type AlgoCategory =
   | 'string'
   | 'heap'
   | 'divide-and-conquer'
+  | 'hash-map'
   | 'unknown';
 
 export interface DPState {
@@ -76,6 +77,20 @@ export interface StackQueueState {
   operationValue?: number | string;
 }
 
+export interface HashMapEntry {
+  key: string | number;
+  value: string | number | null;
+  highlighted?: boolean;  // currently being accessed/compared
+  isNew?: boolean;         // just inserted this step
+}
+
+export interface HashMapState {
+  entries: HashMapEntry[];
+  currentKey?: string | number;
+  operation?: 'insert' | 'lookup' | 'delete';
+  result?: string | number | null;
+}
+
 export interface RecursionNode {
   id: string;
   array: (number | string)[];
@@ -100,6 +115,7 @@ export interface VisualizationStep {
   arrayState?: ArrayState;
   stackQueueState?: StackQueueState;
   recursionTreeState?: RecursionTreeState;
+  hashMapState?: HashMapState;
 }
 
 export interface AnalysisResult {

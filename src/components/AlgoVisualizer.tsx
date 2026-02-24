@@ -7,6 +7,7 @@ import GraphVisualizer from './visualizers/GraphVisualizer';
 import ArrayVisualizer from './visualizers/ArrayVisualizer';
 import StackQueueVisualizer from './visualizers/StackQueueVisualizer';
 import RecursionTreeVisualizer from './visualizers/RecursionTreeVisualizer';
+import HashMapVisualizer from './visualizers/HashMapVisualizer';
 import GenericVisualizer from './visualizers/GenericVisualizer';
 
 interface AlgoVisualizerProps {
@@ -62,6 +63,9 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
     case 'backtracking':
       if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
       break;
+    case 'hash-map':
+      if (step.hashMapState) return <HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />;
+      break;
   }
 
   // Smart fallback: use any available state, regardless of category mismatch.
@@ -70,6 +74,7 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
   if (step.graphState?.nodes?.length) return <GraphVisualizer nodes={step.graphState.nodes} edges={step.graphState.edges ?? []} stepNumber={step.stepNumber} />;
   if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
   if (step.dpState?.table) return <DPVisualizer state={step.dpState} stepNumber={step.stepNumber} />;
+  if (step.hashMapState) return <HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />;
   if (step.stackQueueState) return <StackQueueVisualizer state={step.stackQueueState} stepNumber={step.stepNumber} />;
   if (step.arrayState?.array) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
 

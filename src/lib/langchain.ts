@@ -68,7 +68,18 @@ Return a JSON object with this EXACT structure:
 }}
 
 IMPORTANT RULES:
-1. Generate 6-10 meaningful steps total — keep the response compact
+1. Step counts — NEVER truncate early; the LAST step MUST show the final answer/result:
+   - array / two-pointers / sliding-window / binary-search / greedy / string: 8-12 steps
+   - hash-map: one lookup step + one insert step per element, then a final "found" step (8-12 total)
+   - stack / queue: 8-12 steps
+   - tree / graph / grid: 8-12 steps
+   - dynamic-programming: 8-12 steps
+   - linked-list: at least 9 steps (min 7 pointer-movement steps + setup + final)
+   - divide-and-conquer: 12-16 steps (4+ splitting + 6+ merge-comparison + final sorted)
+   COMPACT JSON: omit every field whose value would be null, undefined, or an empty array [] —
+   only include the ONE state field relevant to this category (e.g. only "arrayState" for array
+   problems, only "hashMapState"+"arrayState" for hash-map, etc.). Never emit all eight state
+   fields per step; that wastes tokens and causes response truncation.
 2. For DP: use a small input like nums=[1,2,3,4,5] or s="abcde"
 3. For Trees: show a tree with 5-7 nodes
 4. For Graphs (non-grid): use AT MOST 6 nodes and 6 steps total. NEVER use "graph" for grid/matrix problems.
@@ -85,8 +96,9 @@ IMPORTANT RULES:
 7. Make the visualization educational and show exactly HOW the algorithm works
 8. codeHighlight lines must be valid 1-indexed line numbers from the actual code
 9. variables should show the key variables at each step with their current values
-10. The steps should tell a complete story of the algorithm execution
+10. The steps must tell a COMPLETE story of the algorithm execution — do not stop partway through
 11. OUTPUT ONLY THE JSON OBJECT — no // comments, no prose before or after
+    The very last step in "steps" MUST be a "done" step showing the final result/answer
 12. HASH-MAP RULES (Two Sum, Group Anagrams, Subarray Sum, Valid Anagram, Longest Consecutive, etc.):
     - Always use category "hash-map"
     - ALWAYS include BOTH "arrayState" AND "hashMapState" in every step — the UI shows them side by side
@@ -139,7 +151,7 @@ export async function analyzeAlgorithm(code: string, apiKey: string): Promise<An
     apiKey,
     model: 'gpt-4o',
     temperature: 0.1,
-    maxTokens: 16000,
+    maxTokens: 16384,
     modelKwargs: { response_format: { type: 'json_object' } },
   });
 

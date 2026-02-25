@@ -106,12 +106,21 @@ export interface HashMapState {
   result?: string | number | null;
 }
 
+export interface MergePointers {
+  leftArray: (number | string)[];
+  rightArray: (number | string)[];
+  leftIdx: number;   // L pointer — current read position in leftArray
+  rightIdx: number;  // R pointer — current read position in rightArray
+  merged: (number | string)[];  // elements placed into result so far
+}
+
 export interface RecursionNode {
   id: string;
   array: (number | string)[];
   phase: 'splitting' | 'merging' | 'sorted';
   current?: boolean;
   children?: RecursionNode[];
+  mergePointers?: MergePointers;
 }
 
 export interface RecursionTreeState {

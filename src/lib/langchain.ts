@@ -111,7 +111,16 @@ IMPORTANT RULES:
     - Mark the node currently being processed as "current": true; all others "current": false
     - Phase of root recursionTreeState: "dividing" during splits, "merging" during combines
     - Node phase: "splitting" while being split, "merging" while being merged, "sorted" when complete
-    - Show at least 4 splitting steps and 4 merging steps so users see both phases clearly`;
+    - DURING EVERY MERGE STEP: the current merging node MUST include "mergePointers":
+        "mergePointers": {
+          "leftArray": [...],    // sorted values from left child
+          "rightArray": [...],   // sorted values from right child
+          "leftIdx": N,          // L pointer — which index we are currently reading from leftArray
+          "rightIdx": N,         // R pointer — which index we are currently reading from rightArray
+          "merged": [...]        // elements already placed into the merged result so far
+        }
+    - Show one step per element placed: advance leftIdx or rightIdx by 1 each step, append taken value to merged
+    - Show at least 4 splitting steps then at least 6 merging steps (one per element comparison) so users watch L/R pointers move`;
 
 export async function analyzeAlgorithm(code: string, apiKey: string): Promise<AnalysisResult> {
   const model = new ChatOpenAI({

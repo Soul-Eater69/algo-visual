@@ -1,6 +1,6 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { RecursionTreeState, RecursionNode } from '@/types';
+import type { RecursionTreeState, RecursionNode, MergePointers } from '@/types';
 
 interface RecursionTreeVisualizerProps {
   state: RecursionTreeState;
@@ -57,6 +57,171 @@ function buildLayout(node: RecursionNode, cx: number, depth: number, out: Layout
   }
 }
 
+/** Depth-first search for the node that is current=true and has mergePointers. */
+function findMergeNode(node: RecursionNode): RecursionNode | null {
+  if (node.current && node.mergePointers) return node;
+  for (const child of node.children ?? []) {
+    const found = findMergeNode(child);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Shows L / R comparison and the growing merged result. */
+function MergeStepPanel({ p }: { p: MergePointers }) {
+  const { leftArray, rightArray, leftIdx, rightIdx, merged } = p;
+  const lDone = leftIdx >= leftArray.length;
+  const rDone = rightIdx >= rightArray.length;
+  const lVal  = leftArray[leftIdx];
+  const rVal  = rightArray[rightIdx];
+  const comparing = !lDone && !rDone;
+  const takingLeft = comparing && Number(lVal) <= Number(rVal);
+
+  function ArrayRow({
+    arr, activeIdx, color, label,
+  }: { arr: (number | string)[]; activeIdx: number; color: string; label: string }) {
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <div className="text-[9px] font-mono uppercase tracking-widest mb-0.5" style={{ color }}>
+          {label}
+        </div>
+        <div className="flex gap-1 items-end">
+          {arr.map((v, i) => {
+            const isActive = i === activeIdx;
+            const isPast   = i < activeIdx;
+            return (
+              <div key={i} className="flex flex-col items-center gap-0.5">
+                {/* pointer label + arrow above active cell */}
+                <div className="h-7 flex flex-col items-center justify-end">
+                  {isActive && !isPast && (
+                    <>
+                      <motion.div
+                        className="text-[10px] font-bold font-mono leading-none"
+                        style={{ color }}
+                        animate={{ y: [0, -2, 0] }}
+                        transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        {label === 'Left' ? 'L' : 'R'}
+                      </motion.div>
+                      <div className="text-xs leading-none" style={{ color }}>↓</div>
+                    </>
+                  )}
+                </div>
+                <motion.div
+                  className="w-9 h-9 flex items-center justify-center rounded-lg text-xs font-mono font-bold border-2"
+                  animate={{
+                    scale: isActive ? 1.12 : 1,
+                    boxShadow: isActive ? `0 0 14px ${color}66` : 'none',
+                  }}
+                  style={{
+                    background: isActive
+                      ? `${color}28`
+                      : isPast
+                      ? 'rgba(15,23,42,0.3)'
+                      : 'rgba(15,23,42,0.7)',
+                    borderColor: isActive ? color : isPast ? '#1e293b55' : '#1e293b',
+                    color: isActive ? '#f8fafc' : isPast ? '#334155' : '#64748b',
+                    textDecoration: isPast ? 'line-through' : 'none',
+                  }}
+                >
+                  {String(v)}
+                </motion.div>
+              </div>
+            );
+          })}
+          {/* exhausted marker */}
+          {activeIdx >= arr.length && (
+            <div className="text-[9px] text-slate-600 font-mono italic self-center ml-1">done</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      className="w-full max-w-xl mx-auto rounded-xl border border-purple-500/25 bg-purple-500/5 p-4 mt-2"
+    >
+      <div className="text-[9px] font-mono uppercase tracking-widest text-purple-400/70 mb-3">
+        Merge step — comparing pointers
+      </div>
+
+      {/* Left + vs + Right */}
+      <div className="flex gap-4 items-start justify-center">
+        <ArrayRow arr={leftArray} activeIdx={leftIdx} color="#ec4899" label="Left" />
+
+        {/* comparison bubble */}
+        <div className="flex flex-col items-center justify-center pt-10 px-1 min-w-[52px]">
+          {comparing ? (
+            <>
+              <div className="text-[9px] text-slate-500 font-mono mb-0.5">
+                {lVal} {takingLeft ? '≤' : '>'} {rVal}
+              </div>
+              <motion.div
+                key={`cmp-${leftIdx}-${rightIdx}`}
+                initial={{ scale: 0.7, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-[10px] font-bold font-mono px-2 py-0.5 rounded border"
+                style={takingLeft
+                  ? { color: '#f472b6', background: 'rgba(236,72,153,0.12)', borderColor: 'rgba(236,72,153,0.35)' }
+                  : { color: '#22d3ee', background: 'rgba(34,211,238,0.1)',  borderColor: 'rgba(34,211,238,0.3)' }
+                }
+              >
+                {takingLeft ? '← take L' : 'take R →'}
+              </motion.div>
+            </>
+          ) : (
+            <div className="text-[9px] text-slate-600 font-mono text-center">drain<br/>remaining</div>
+          )}
+        </div>
+
+        <ArrayRow arr={rightArray} activeIdx={rightIdx} color="#22d3ee" label="Right" />
+      </div>
+
+      {/* Merged result */}
+      <div className="border-t border-white/5 mt-4 pt-3">
+        <div className="text-[9px] text-emerald-400/60 font-mono uppercase tracking-widest mb-2">
+          Result (k={merged.length})
+        </div>
+        <div className="flex gap-1 justify-center items-end">
+          {merged.map((v, i) => (
+            <motion.div
+              key={`m-${i}-${String(v)}`}
+              initial={{ scale: 0.5, opacity: 0, y: 8 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 340, damping: 22 }}
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-xs font-mono font-bold border-2"
+              style={{
+                background: 'rgba(34,197,94,0.18)',
+                borderColor: '#22c55e',
+                color: '#86efac',
+                boxShadow: i === merged.length - 1 ? '0 0 10px rgba(34,197,94,0.4)' : 'none',
+              }}
+            >
+              {String(v)}
+            </motion.div>
+          ))}
+          {/* k slot */}
+          <div className="flex flex-col items-center gap-0.5">
+            <motion.div
+              className="text-[10px] font-bold font-mono text-emerald-400 leading-none"
+              animate={{ y: [0, -2, 0] }}
+              transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
+            >k</motion.div>
+            <div className="text-emerald-400 text-xs leading-none">↓</div>
+            <div className="w-9 h-9 flex items-center justify-center rounded-lg text-xs border-2 border-dashed border-emerald-500/30 text-slate-700">
+              _
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 interface EdgeData { x1: number; y1: number; x2: number; y2: number; }
 
 function buildEdges(items: LayoutItem[]): EdgeData[] {
@@ -83,6 +248,8 @@ export default function RecursionTreeVisualizer({ state, stepNumber }: Recursion
   if (!state?.root) {
     return <div className="flex items-center justify-center p-8 text-slate-500 text-sm">No recursion data</div>;
   }
+
+  const mergeNode = state.phase === 'merging' ? findMergeNode(state.root) : null;
 
   const items: LayoutItem[] = [];
   buildLayout(state.root, 0, 0, items);
@@ -202,6 +369,11 @@ export default function RecursionTreeVisualizer({ state, stepNumber }: Recursion
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Merge pointer panel — shown when a merge step is active */}
+      {mergeNode?.mergePointers && (
+        <MergeStepPanel p={mergeNode.mergePointers} />
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 text-[10px] text-slate-500 justify-center">

@@ -168,6 +168,78 @@ function formatVar(v: unknown): string {
   return String(v as string | number | boolean);
 }
 
+/** Renders variables in a structured, scannable layout.
+ *  - Arrays  → horizontal indexed cells (like a mini array visualiser)
+ *  - Scalars → compact named badges in a row
+ */
+function VariablesDisplay({ variables }: { variables: Record<string, unknown> }) {
+  const entries = Object.entries(variables).filter(([, v]) => v !== null && v !== undefined);
+  if (entries.length === 0) return null;
+
+  const arrays  = entries.filter(([, v]) => Array.isArray(v));
+  const scalars = entries.filter(([, v]) => !Array.isArray(v));
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* ── Scalars — a horizontal row of named badges ── */}
+      {scalars.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {scalars.map(([k, v]) => {
+            const str = v === null || v === undefined ? 'null' : String(v as string | number | boolean);
+            const isBool = typeof v === 'boolean';
+            const valColor = isBool
+              ? (v ? '#86efac' : '#f87171')
+              : (typeof v === 'number' ? '#fcd34d' : '#7dd3fc');
+            return (
+              <div
+                key={k}
+                className="flex items-baseline gap-1.5 bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 font-mono"
+              >
+                <span className="text-[10px] text-slate-400 uppercase tracking-wide">{k}</span>
+                <span className="text-slate-600 text-xs">=</span>
+                <span className="font-bold text-sm" style={{ color: valColor }}>{str}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Arrays — each one labelled and shown as indexed cells ── */}
+      {arrays.map(([k, rawV]) => {
+        const arr = rawV as unknown[];
+        return (
+          <div key={k}>
+            <p className="text-[9px] font-mono uppercase tracking-widest text-slate-600 mb-1.5">{k}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {arr.map((cell, i) => {
+                const isBool = typeof cell === 'boolean';
+                const isTrue = isBool && cell === true;
+                const isFalse = isBool && cell === false;
+                const str = cell === null || cell === undefined ? '∅' : String(cell);
+                return (
+                  <div key={i} className="flex flex-col items-center gap-0.5">
+                    <div
+                      className="w-9 h-9 rounded-lg border-2 font-mono text-xs font-bold flex items-center justify-center"
+                      style={{
+                        borderColor: isTrue ? '#22c55e' : isFalse ? '#1e293b' : '#1e3a5f',
+                        background:  isTrue ? 'rgba(34,197,94,0.15)' : isFalse ? 'rgba(15,23,42,0.7)' : 'rgba(15,35,60,0.8)',
+                        color:       isTrue ? '#86efac' : isFalse ? '#334155' : '#93c5fd',
+                      }}
+                    >
+                      {str}
+                    </div>
+                    <span className="text-[9px] text-slate-700 font-mono">{i}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Home() {
   const [code, setCode] = useState('');
   const [apiKeyInput, setApiKeyInput] = useState('');
@@ -559,32 +631,30 @@ export default function Home() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }}
                       transition={{ duration: 0.2, ease: 'easeInOut' }}
-                      className="glass rounded-2xl p-5 flex flex-col gap-4"
+                      className="glass rounded-2xl overflow-hidden"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-purple-300 text-xs font-bold">{currentStep + 1}</span>
-                        </div>
+                      {/* Description row */}
+                      <div className="flex items-start gap-3 px-5 py-4">
+                        <span
+                          className="shrink-0 mt-0.5 text-[9px] font-bold font-mono px-2 py-1 rounded-lg tracking-widest"
+                          style={{ background: 'rgba(168,85,247,0.15)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}
+                        >
+                          {currentStep + 1}/{result.totalSteps}
+                        </span>
                         <p className="text-slate-200 text-sm leading-relaxed">{step.description}</p>
                       </div>
 
+                      {/* Variables — only rendered when present */}
                       {Object.keys(step.variables).length > 0 && (
-                        <div>
-                          <p className="text-[10px] text-slate-600 font-mono uppercase tracking-widest mb-2">Variables</p>
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(step.variables).map(([k, v]) => (
-                              <motion.div
-                                key={k}
-                                layout
-                                className="flex items-center gap-1.5 bg-slate-800/70 border border-slate-700/80 rounded-lg px-2.5 py-1.5 font-mono text-xs"
-                              >
-                                <span className="text-sky-400">{k}</span>
-                                <span className="text-slate-600">=</span>
-                                <span className="text-amber-300">{formatVar(v)}</span>
-                              </motion.div>
-                            ))}
+                        <>
+                          <div className="h-px bg-white/5" />
+                          <div className="px-5 py-4">
+                            <p className="text-[9px] font-mono uppercase tracking-widest text-slate-500 mb-3">
+                              Variables
+                            </p>
+                            <VariablesDisplay variables={step.variables as Record<string, unknown>} />
                           </div>
-                        </div>
+                        </>
                       )}
                     </motion.div>
                   </AnimatePresence>

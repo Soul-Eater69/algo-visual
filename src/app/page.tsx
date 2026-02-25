@@ -168,9 +168,21 @@ function formatVar(v: unknown): string {
   return String(v as string | number | boolean);
 }
 
-/** Renders variables in a structured, scannable layout.
- *  - Arrays  → horizontal indexed cells (like a mini array visualiser)
- *  - Scalars → compact named badges in a row
+/** One bordered section card — matches the VISITED / COMPONENTS COUNT style. */
+function VarCard({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-slate-700/70 overflow-hidden bg-slate-900/50">
+      <p className="text-[9px] font-bold font-mono uppercase tracking-widest text-slate-400 px-3 pt-2.5 pb-1.5">
+        {label}
+      </p>
+      <div className="px-3 pb-3">{children}</div>
+    </div>
+  );
+}
+
+/** Renders algorithm variables as section cards.
+ *  - Each array  → its own labelled card with indexed horizontal cells
+ *  - All scalars → one labelled card with a row of name=value chips
  */
 function VariablesDisplay({ variables }: { variables: Record<string, unknown> }) {
   const entries = Object.entries(variables).filter(([, v]) => v !== null && v !== undefined);
@@ -180,46 +192,45 @@ function VariablesDisplay({ variables }: { variables: Record<string, unknown> })
   const scalars = entries.filter(([, v]) => !Array.isArray(v));
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* ── Scalars — a horizontal row of named badges ── */}
+    <div className="flex flex-col gap-2">
+
+      {/* ── Scalars card ── */}
       {scalars.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {scalars.map(([k, v]) => {
-            const str = v === null || v === undefined ? 'null' : String(v as string | number | boolean);
-            const isBool = typeof v === 'boolean';
-            const valColor = isBool
-              ? (v ? '#86efac' : '#f87171')
-              : (typeof v === 'number' ? '#fcd34d' : '#7dd3fc');
-            return (
-              <div
-                key={k}
-                className="flex items-baseline gap-1.5 bg-slate-800/60 border border-slate-700/60 rounded-xl px-3 py-2 font-mono"
-              >
-                <span className="text-[10px] text-slate-400 uppercase tracking-wide">{k}</span>
-                <span className="text-slate-600 text-xs">=</span>
-                <span className="font-bold text-sm" style={{ color: valColor }}>{str}</span>
-              </div>
-            );
-          })}
-        </div>
+        <VarCard label="State">
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {scalars.map(([k, v]) => {
+              const str = v === null || v === undefined ? 'null' : String(v as string | number | boolean);
+              const isBool = typeof v === 'boolean';
+              const valColor = isBool
+                ? ((v as boolean) ? '#86efac' : '#f87171')
+                : typeof v === 'number' ? '#fcd34d' : '#7dd3fc';
+              return (
+                <div key={k} className="flex items-baseline gap-1.5 font-mono">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-wide">{k}</span>
+                  <span className="text-slate-700 text-xs">=</span>
+                  <span className="font-bold text-sm" style={{ color: valColor }}>{str}</span>
+                </div>
+              );
+            })}
+          </div>
+        </VarCard>
       )}
 
-      {/* ── Arrays — each one labelled and shown as indexed cells ── */}
+      {/* ── One card per array variable ── */}
       {arrays.map(([k, rawV]) => {
         const arr = rawV as unknown[];
         return (
-          <div key={k}>
-            <p className="text-[9px] font-mono uppercase tracking-widest text-slate-600 mb-1.5">{k}</p>
+          <VarCard key={k} label={k}>
             <div className="flex flex-wrap gap-1.5">
               {arr.map((cell, i) => {
                 const isBool = typeof cell === 'boolean';
-                const isTrue = isBool && cell === true;
-                const isFalse = isBool && cell === false;
+                const isTrue  = isBool && (cell as boolean) === true;
+                const isFalse = isBool && (cell as boolean) === false;
                 const str = cell === null || cell === undefined ? '∅' : String(cell);
                 return (
                   <div key={i} className="flex flex-col items-center gap-0.5">
                     <div
-                      className="w-9 h-9 rounded-lg border-2 font-mono text-xs font-bold flex items-center justify-center"
+                      className="min-w-[36px] h-9 px-1.5 rounded-lg border-2 font-mono text-xs font-bold flex items-center justify-center"
                       style={{
                         borderColor: isTrue ? '#22c55e' : isFalse ? '#1e293b' : '#1e3a5f',
                         background:  isTrue ? 'rgba(34,197,94,0.15)' : isFalse ? 'rgba(15,23,42,0.7)' : 'rgba(15,35,60,0.8)',
@@ -233,7 +244,7 @@ function VariablesDisplay({ variables }: { variables: Record<string, unknown> })
                 );
               })}
             </div>
-          </div>
+          </VarCard>
         );
       })}
     </div>
@@ -633,25 +644,28 @@ export default function Home() {
                       transition={{ duration: 0.2, ease: 'easeInOut' }}
                       className="glass rounded-2xl overflow-hidden"
                     >
-                      {/* Description row */}
-                      <div className="flex items-start gap-3 px-5 py-4">
-                        <span
-                          className="shrink-0 mt-0.5 text-[9px] font-bold font-mono px-2 py-1 rounded-lg tracking-widest"
-                          style={{ background: 'rgba(168,85,247,0.15)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}
-                        >
-                          {currentStep + 1}/{result.totalSteps}
-                        </span>
-                        <p className="text-slate-200 text-sm leading-relaxed">{step.description}</p>
+                      {/* Description — left accent border like a blockquote */}
+                      <div className="px-5 py-4 flex items-start gap-4">
+                        <div
+                          className="shrink-0 self-stretch w-0.5 rounded-full mt-0.5"
+                          style={{ background: 'linear-gradient(to bottom, #a855f7, #22d3ee)' }}
+                        />
+                        <div className="flex flex-col gap-1.5 min-w-0">
+                          <span
+                            className="text-[9px] font-bold font-mono uppercase tracking-widest"
+                            style={{ color: '#a855f7' }}
+                          >
+                            Step {currentStep + 1} / {result.totalSteps}
+                          </span>
+                          <p className="text-slate-100 text-sm leading-relaxed">{step.description}</p>
+                        </div>
                       </div>
 
-                      {/* Variables — only rendered when present */}
+                      {/* Variables — section cards, only when present */}
                       {Object.keys(step.variables).length > 0 && (
                         <>
                           <div className="h-px bg-white/5" />
                           <div className="px-5 py-4">
-                            <p className="text-[9px] font-mono uppercase tracking-widest text-slate-500 mb-3">
-                              Variables
-                            </p>
                             <VariablesDisplay variables={step.variables as Record<string, unknown>} />
                           </div>
                         </>

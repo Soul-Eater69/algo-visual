@@ -120,7 +120,19 @@ IMPORTANT RULES:
           "merged": [...]        // elements already placed into the merged result so far
         }
     - Show one step per element placed: advance leftIdx or rightIdx by 1 each step, append taken value to merged
-    - Show at least 4 splitting steps then at least 6 merging steps (one per element comparison) so users watch L/R pointers move`;
+    - Show at least 4 splitting steps then at least 6 merging steps (one per element comparison) so users watch L/R pointers move
+15. LINKED LIST RULES:
+    - Always use category "linked-list"
+    - ALWAYS use "linkedListState" (NOT arrayState) to show the list as connected nodes
+    - "nodes": ordered array of node objects, left-to-right as drawn: { "id": "n0", "value": 1, "highlighted": false }
+    - "pointers": named pointers into the list: { "name": "head", "nodeId": "n0" }, { "name": "prev", "nodeId": "n1" }, etc.
+    - Pointer names to use: "head", "curr", "prev", "slow", "fast", "p1", "p2" (choose what fits the algorithm)
+    - "highlightedEdge": ["n1", "n2"] — use when the edge between n1 and n2 is being reassigned (e.g. reversal step)
+    - For reversal: show each step where prev/curr advance and the next pointer flips; one step per node processed
+    - For Floyd's cycle detection: show slow advancing 1 step and fast advancing 2 steps per step
+    - For merge two lists: show p1 and p2 on the two lists being merged, one comparison per step
+    - Use a list of 5-6 nodes with simple values (e.g. 1 → 2 → 3 → 4 → 5)
+    - Show at least 7 steps so the full pointer movement is visible`;
 
 export async function analyzeAlgorithm(code: string, apiKey: string): Promise<AnalysisResult> {
   const model = new ChatOpenAI({

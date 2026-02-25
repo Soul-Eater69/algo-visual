@@ -10,6 +10,7 @@ import RecursionTreeVisualizer from './visualizers/RecursionTreeVisualizer';
 import HashMapVisualizer from './visualizers/HashMapVisualizer';
 import GridVisualizer from './visualizers/GridVisualizer';
 import GenericVisualizer from './visualizers/GenericVisualizer';
+import LinkedListVisualizer from './visualizers/LinkedListVisualizer';
 
 interface AlgoVisualizerProps {
   step: VisualizationStep;
@@ -108,6 +109,7 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
       if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       break;
     case 'linked-list':
+      if (step.linkedListState) return <LinkedListVisualizer state={step.linkedListState} stepNumber={step.stepNumber} />;
       if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
       break;
     case 'backtracking':
@@ -161,6 +163,7 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
   }
   if (step.hashMapState) return <HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />;
   if (step.stackQueueState) return <StackQueueVisualizer state={step.stackQueueState} stepNumber={step.stepNumber} />;
+  if (step.linkedListState) return <LinkedListVisualizer state={step.linkedListState} stepNumber={step.stepNumber} />;
   if (step.arrayState?.array) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
 
   return <GenericVisualizer step={step} category={category} />;

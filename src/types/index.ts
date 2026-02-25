@@ -106,6 +106,25 @@ export interface HashMapState {
   result?: string | number | null;
 }
 
+export interface LinkedListNode {
+  id: string;
+  value: number | string;
+  highlighted?: boolean;   // node is actively visited/compared
+  isCurrent?: boolean;     // node pointer is currently on
+}
+
+export interface LinkedListPointer {
+  name: string;    // 'head', 'curr', 'prev', 'slow', 'fast', 'p1', 'p2' …
+  nodeId: string;  // id of the node this pointer points to
+  color?: string;
+}
+
+export interface LinkedListState {
+  nodes: LinkedListNode[];           // ordered left-to-right as drawn
+  pointers: LinkedListPointer[];
+  highlightedEdge?: [string, string]; // [fromId, toId] — edge being reassigned
+}
+
 export interface MergePointers {
   leftArray: (number | string)[];
   rightArray: (number | string)[];
@@ -141,6 +160,7 @@ export interface VisualizationStep {
   stackQueueState?: StackQueueState;
   recursionTreeState?: RecursionTreeState;
   hashMapState?: HashMapState;
+  linkedListState?: LinkedListState;
 }
 
 export interface AnalysisResult {

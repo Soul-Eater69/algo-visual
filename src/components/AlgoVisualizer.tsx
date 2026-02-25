@@ -16,6 +16,37 @@ interface AlgoVisualizerProps {
   result: AnalysisResult;
 }
 
+/** Split view: input data on top, auxiliary memory on bottom. */
+function DualPane({
+  top, bottom, topLabel, bottomLabel,
+}: {
+  top: React.ReactNode;
+  bottom: React.ReactNode;
+  topLabel: string;
+  bottomLabel: string;
+}) {
+  return (
+    <div className="flex flex-col w-full divide-y divide-white/5">
+      <div className="w-full">
+        <div className="px-4 pt-2.5 pb-0">
+          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-600 border border-slate-700/60 rounded px-1.5 py-0.5">
+            {topLabel}
+          </span>
+        </div>
+        {top}
+      </div>
+      <div className="w-full">
+        <div className="px-4 pt-2.5 pb-0">
+          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-600 border border-slate-700/60 rounded px-1.5 py-0.5">
+            {bottomLabel}
+          </span>
+        </div>
+        {bottom}
+      </div>
+    </div>
+  );
+}
+
 function VisualizerContent({ step, result }: AlgoVisualizerProps) {
   const { category } = result;
 
@@ -51,12 +82,27 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
     case 'binary-search':
       if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="binary-search" />;
       break;
+
     case 'stack':
-      if (step.stackQueueState) return <StackQueueVisualizer state={{ ...step.stackQueueState, type: 'stack' }} stepNumber={step.stepNumber} />;
+    case 'queue': {
+      const sqState = step.stackQueueState
+        ? { ...step.stackQueueState, type: category as 'stack' | 'queue' }
+        : null;
+      // Dual view: input array being iterated + stack/queue memory
+      if (sqState && step.arrayState) {
+        return (
+          <DualPane
+            topLabel="Input — iterating"
+            bottomLabel={category === 'stack' ? 'Stack memory' : 'Queue memory'}
+            top={<ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />}
+            bottom={<StackQueueVisualizer state={sqState} stepNumber={step.stepNumber} />}
+          />
+        );
+      }
+      if (sqState) return <StackQueueVisualizer state={sqState} stepNumber={step.stepNumber} />;
       break;
-    case 'queue':
-      if (step.stackQueueState) return <StackQueueVisualizer state={{ ...step.stackQueueState, type: 'queue' }} stepNumber={step.stepNumber} />;
-      break;
+    }
+
     case 'heap':
       if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
       if (step.arrayState) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;
@@ -67,18 +113,52 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
     case 'backtracking':
       if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
       break;
-    case 'hash-map':
+
+    case 'hash-map': {
+      // Dual view: input array being iterated + hash map memory
+      if (step.hashMapState && step.arrayState) {
+        return (
+          <DualPane
+            topLabel="Input — iterating"
+            bottomLabel="HashMap memory"
+            top={<ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />}
+            bottom={<HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />}
+          />
+        );
+      }
       if (step.hashMapState) return <HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />;
       break;
+    }
   }
 
   // Smart fallback: use any available state, regardless of category mismatch.
-  // This prevents a blank canvas when GPT returns the right data under the wrong key.
   if (step.recursionTreeState) return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
   if (step.gridState?.grid?.length) return <GridVisualizer state={step.gridState} stepNumber={step.stepNumber} />;
   if (step.graphState?.nodes?.length) return <GraphVisualizer nodes={step.graphState.nodes} edges={step.graphState.edges ?? []} stepNumber={step.stepNumber} />;
   if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
   if (step.dpState?.table) return <DPVisualizer state={step.dpState} stepNumber={step.stepNumber} />;
+  // Dual fallback: hashMap + array
+  if (step.hashMapState && step.arrayState) {
+    return (
+      <DualPane
+        topLabel="Input — iterating"
+        bottomLabel="HashMap memory"
+        top={<ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />}
+        bottom={<HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />}
+      />
+    );
+  }
+  // Dual fallback: stack/queue + array
+  if (step.stackQueueState && step.arrayState) {
+    return (
+      <DualPane
+        topLabel="Input — iterating"
+        bottomLabel={`${step.stackQueueState.type} memory`}
+        top={<ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />}
+        bottom={<StackQueueVisualizer state={step.stackQueueState} stepNumber={step.stepNumber} />}
+      />
+    );
+  }
   if (step.hashMapState) return <HashMapVisualizer state={step.hashMapState} stepNumber={step.stepNumber} />;
   if (step.stackQueueState) return <StackQueueVisualizer state={step.stackQueueState} stepNumber={step.stepNumber} />;
   if (step.arrayState?.array) return <ArrayVisualizer state={step.arrayState} stepNumber={step.stepNumber} mode="array" />;

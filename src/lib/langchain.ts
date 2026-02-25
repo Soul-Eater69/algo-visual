@@ -89,14 +89,20 @@ IMPORTANT RULES:
 11. OUTPUT ONLY THE JSON OBJECT — no // comments, no prose before or after
 12. HASH-MAP RULES (Two Sum, Group Anagrams, Subarray Sum, Valid Anagram, Longest Consecutive, etc.):
     - Always use category "hash-map"
-    - Always use "hashMapState" to show the map contents at each step
+    - ALWAYS include BOTH "arrayState" AND "hashMapState" in every step — the UI shows them side by side
+    - "arrayState": the input array with a pointer "i" at the current index being processed
+    - "hashMapState": the map contents at that moment
     - Show entries accumulating as the algorithm runs (start empty, add one-by-one)
     - For each step, set "isNew": true only on the entry just inserted that step; all others false
     - Set "highlighted": true and "operation": "lookup" on the entry being checked/matched
     - Set "currentKey" to the key being processed; "result" to the found value when a match occurs
     - Use a small example: nums=[2,7,11,15], target=9 for Two Sum
     - Show at least 6 steps: initial state, each insertion with lookup check
-13. DIVIDE-AND-CONQUER RULES (merge sort, quick sort, etc.):
+13. STACK/QUEUE RULES:
+    - ALWAYS include BOTH "arrayState" AND "stackQueueState" in every step — the UI shows them side by side
+    - "arrayState": the input array with a pointer "i" at the current index being processed
+    - "stackQueueState": the current stack/queue contents with the operation being performed
+14. DIVIDE-AND-CONQUER RULES (merge sort, quick sort, etc.):
     - Always use category "divide-and-conquer"
     - Always use "recursionTreeState" (NOT arrayState) to show the recursion tree
     - Use input array of exactly 6-7 elements (e.g. [38, 27, 43, 3, 9, 82, 10] for merge sort)

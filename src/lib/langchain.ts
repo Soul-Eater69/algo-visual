@@ -112,20 +112,20 @@ IMPORTANT RULES:
     - Phase of root recursionTreeState: "dividing" during splits, "merging" during combines
     - Node phase: "splitting" while being split, "merging" while being merged, "sorted" when complete
     - DURING EVERY MERGE STEP: the current merging node MUST include "mergePointers":
-        "mergePointers": {
+        "mergePointers": {{
           "leftArray": [...],    // sorted values from left child
           "rightArray": [...],   // sorted values from right child
           "leftIdx": N,          // L pointer — which index we are currently reading from leftArray
           "rightIdx": N,         // R pointer — which index we are currently reading from rightArray
           "merged": [...]        // elements already placed into the merged result so far
-        }
+        }}
     - Show one step per element placed: advance leftIdx or rightIdx by 1 each step, append taken value to merged
     - Show at least 4 splitting steps then at least 6 merging steps (one per element comparison) so users watch L/R pointers move
 15. LINKED LIST RULES:
     - Always use category "linked-list"
     - ALWAYS use "linkedListState" (NOT arrayState) to show the list as connected nodes
-    - "nodes": ordered array of node objects, left-to-right as drawn: { "id": "n0", "value": 1, "highlighted": false }
-    - "pointers": named pointers into the list: { "name": "head", "nodeId": "n0" }, { "name": "prev", "nodeId": "n1" }, etc.
+    - "nodes": ordered array of node objects, left-to-right as drawn: {{ "id": "n0", "value": 1, "highlighted": false }}
+    - "pointers": named pointers into the list: {{ "name": "head", "nodeId": "n0" }}, {{ "name": "prev", "nodeId": "n1" }}, etc.
     - Pointer names to use: "head", "curr", "prev", "slow", "fast", "p1", "p2" (choose what fits the algorithm)
     - "highlightedEdge": ["n1", "n2"] — use when the edge between n1 and n2 is being reassigned (e.g. reversal step)
     - For reversal: show each step where prev/curr advance and the next pointer flips; one step per node processed

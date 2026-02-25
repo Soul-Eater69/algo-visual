@@ -27,18 +27,28 @@ function DualPane({
   bottomLabel: string;
 }) {
   return (
-    <div className="flex flex-col w-full divide-y divide-white/5">
+    <div className="flex flex-col w-full gap-0">
+      {/* Top pane */}
       <div className="w-full">
-        <div className="px-4 pt-2.5 pb-0">
-          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-600 border border-slate-700/60 rounded px-1.5 py-0.5">
+        <div className="px-4 pt-3 pb-0">
+          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500 border border-slate-700/60 rounded px-1.5 py-0.5 bg-slate-800/40">
             {topLabel}
           </span>
         </div>
         {top}
       </div>
-      <div className="w-full">
-        <div className="px-4 pt-2.5 pb-0">
-          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-600 border border-slate-700/60 rounded px-1.5 py-0.5">
+
+      {/* Divider with downward flow hint */}
+      <div className="flex items-center gap-3 px-4 py-1">
+        <div className="flex-1 h-px bg-white/5" />
+        <span className="text-[10px] text-slate-700 font-mono">↓</span>
+        <div className="flex-1 h-px bg-white/5" />
+      </div>
+
+      {/* Bottom pane */}
+      <div className="w-full" style={{ background: 'rgba(255,255,255,0.012)', borderRadius: '0 0 12px 12px' }}>
+        <div className="px-4 pt-1 pb-0">
+          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500 border border-slate-700/60 rounded px-1.5 py-0.5 bg-slate-800/40">
             {bottomLabel}
           </span>
         </div>

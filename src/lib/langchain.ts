@@ -7,6 +7,7 @@ const CATEGORY_COLORS: Record<AlgoCategory, string> = {
   'dynamic-programming': '#a855f7',
   'tree': '#22c55e',
   'graph': '#3b82f6',
+  'grid': '#f97316',
   'array': '#f59e0b',
   'two-pointers': '#ec4899',
   'sliding-window': '#14b8a6',
@@ -39,7 +40,7 @@ Code:
 
 Return a JSON object with this EXACT structure:
 {{
-  "category": one of ["dynamic-programming", "tree", "graph", "array", "two-pointers", "sliding-window", "stack", "queue", "linked-list", "binary-search", "backtracking", "greedy", "string", "heap", "divide-and-conquer", "hash-map", "unknown"],
+  "category": one of ["dynamic-programming", "tree", "graph", "grid", "array", "two-pointers", "sliding-window", "stack", "queue", "linked-list", "binary-search", "backtracking", "greedy", "string", "heap", "divide-and-conquer", "hash-map", "unknown"],
   "categoryLabel": human readable category name,
   "problemName": inferred problem name or "Algorithm Analysis",
   "complexity": {{
@@ -57,6 +58,7 @@ Return a JSON object with this EXACT structure:
       "dpState": {{ "dimension": "1d" or "2d", "table": [[values]], "currentCell": [row,col] or null, "headers": {{"rows":[...],"cols":[...]}}, "dependencies": [[row,col],...] }},
       "treeState": {{ "id": "root", "value": value, "current": true/false, "visited": true/false, "highlighted": true/false, "children": [...] }},
       "graphState": {{ "nodes": [{{"id":"0","label":"0","visited":false,"current":false,"inQueue":false}},...], "edges": [{{"from":"0","to":"1","directed":true,"highlighted":false}},...] }},
+      "gridState": {{ "grid": [[{{"value":0,"state":"default","label":""}},...],...],"queue":[[r,c],...] or [],"legend":[{{"value":"0","label":"Empty","color":"#475569"}},{{"value":"1","label":"Fresh","color":"#22c55e"}},{{"value":"2","label":"Rotten","color":"#ef4444"}}] }},
       "arrayState": {{ "array": [values], "pointers": [{{"name":"left","index":0,"color":"#ec4899"}},...], "highlighted": [indices], "window": [start,end] or null, "comparing": [i,j] or [], "swapping": [i,j] or null }},
       "stackQueueState": {{ "type": "stack" or "queue", "items": [values], "operation": "push"/"pop"/"enqueue"/"dequeue"/"peek" or null, "operationValue": value or null }},
       "recursionTreeState": {{ "phase": "dividing" or "merging", "root": {{ "id": "unique-id", "array": [values], "phase": "splitting"/"merging"/"sorted", "current": true/false, "children": [...] }} }},
@@ -69,7 +71,15 @@ IMPORTANT RULES:
 1. Generate 6-10 meaningful steps total — keep the response compact
 2. For DP: use a small input like nums=[1,2,3,4,5] or s="abcde"
 3. For Trees: show a tree with 5-7 nodes
-4. For Graphs: use AT MOST 6 nodes — for grid problems (e.g. Rotting Oranges) model only a 2x3 sub-grid; label cells "r0c0","r0c1", etc. Maximum 6 steps for graph problems.
+4. For Graphs (non-grid): use AT MOST 6 nodes and 6 steps total. NEVER use "graph" for grid/matrix problems.
+4b. GRID PROBLEMS (Rotting Oranges, Number of Islands, Unique Paths, Word Search, Flood Fill, etc.):
+    - Always use category "grid" and always use "gridState" (NOT graphState)
+    - Use a tiny example grid of at most 3 rows x 4 cols
+    - Each cell: {{"value": 0/1/2/..., "state": "default"/"visited"/"current"/"queued"/"source"/"highlighted"/"blocked", "label": ""}}
+    - States: "source" = rotten/start, "queued" = in BFS queue, "visited" = processed, "current" = being processed now
+    - "queue" field = [[r,c],...] array of cells currently in the BFS queue
+    - "legend" = explain what each numeric value means (e.g. 0=empty, 1=fresh, 2=rotten)
+    - Show 6-8 steps: initial grid, each BFS wave, final result
 5. For Arrays: use a small array of 5-8 elements
 6. Each step must show actual state changes, not just descriptions
 7. Make the visualization educational and show exactly HOW the algorithm works
@@ -103,6 +113,7 @@ export async function analyzeAlgorithm(code: string, apiKey: string): Promise<An
     model: 'gpt-4o',
     temperature: 0.1,
     maxTokens: 16000,
+    modelKwargs: { response_format: { type: 'json_object' } },
   });
 
   const prompt = ChatPromptTemplate.fromMessages([

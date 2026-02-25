@@ -11,6 +11,7 @@ const CATEGORY_ICONS: Record<AlgoCategory, string> = {
   'dynamic-programming': '📊',
   'tree': '🌳',
   'graph': '🕸️',
+  'grid': '🔲',
   'array': '📋',
   'two-pointers': '👆',
   'sliding-window': '🪟',

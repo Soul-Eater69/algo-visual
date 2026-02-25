@@ -2,6 +2,7 @@ export type AlgoCategory =
   | 'dynamic-programming'
   | 'tree'
   | 'graph'
+  | 'grid'
   | 'array'
   | 'two-pointers'
   | 'sliding-window'
@@ -77,6 +78,20 @@ export interface StackQueueState {
   operationValue?: number | string;
 }
 
+export type GridCellState = 'default' | 'visited' | 'current' | 'queued' | 'source' | 'highlighted' | 'blocked';
+
+export interface GridCell {
+  value: number | string;
+  state?: GridCellState;
+  label?: string;
+}
+
+export interface GridState {
+  grid: GridCell[][];
+  queue?: [number, number][];
+  legend?: { value: string; label: string; color: string }[];
+}
+
 export interface HashMapEntry {
   key: string | number;
   value: string | number | null;
@@ -112,6 +127,7 @@ export interface VisualizationStep {
   dpState?: DPState;
   treeState?: TreeNodeData;
   graphState?: { nodes: GraphNodeData[]; edges: GraphEdgeData[] };
+  gridState?: GridState;
   arrayState?: ArrayState;
   stackQueueState?: StackQueueState;
   recursionTreeState?: RecursionTreeState;

@@ -11,6 +11,7 @@ const CATEGORY_CONFIG: Record<AlgoCategory, { color: string; bg: string; border:
   'dynamic-programming': { color: '#a855f7', bg: 'rgba(168, 85, 247, 0.15)', border: 'rgba(168, 85, 247, 0.4)', icon: '📊' },
   'tree':               { color: '#22c55e', bg: 'rgba(34, 197, 94, 0.15)',  border: 'rgba(34, 197, 94, 0.4)',  icon: '🌳' },
   'graph':              { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.4)', icon: '🕸️' },
+  'grid':               { color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.4)', icon: '🔲' },
   'array':              { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.4)', icon: '📋' },
   'two-pointers':       { color: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)', border: 'rgba(236, 72, 153, 0.4)', icon: '👆' },
   'sliding-window':     { color: '#14b8a6', bg: 'rgba(20, 184, 166, 0.15)', border: 'rgba(20, 184, 166, 0.4)', icon: '🪟' },

@@ -8,6 +8,7 @@ import ArrayVisualizer from './visualizers/ArrayVisualizer';
 import StackQueueVisualizer from './visualizers/StackQueueVisualizer';
 import RecursionTreeVisualizer from './visualizers/RecursionTreeVisualizer';
 import HashMapVisualizer from './visualizers/HashMapVisualizer';
+import GridVisualizer from './visualizers/GridVisualizer';
 import GenericVisualizer from './visualizers/GenericVisualizer';
 
 interface AlgoVisualizerProps {
@@ -28,6 +29,9 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
       break;
     case 'graph':
       if (step.graphState) return <GraphVisualizer nodes={step.graphState.nodes ?? []} edges={step.graphState.edges ?? []} stepNumber={step.stepNumber} />;
+      break;
+    case 'grid':
+      if (step.gridState) return <GridVisualizer state={step.gridState} stepNumber={step.stepNumber} />;
       break;
     case 'divide-and-conquer':
       if (step.recursionTreeState) return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
@@ -71,6 +75,7 @@ function VisualizerContent({ step, result }: AlgoVisualizerProps) {
   // Smart fallback: use any available state, regardless of category mismatch.
   // This prevents a blank canvas when GPT returns the right data under the wrong key.
   if (step.recursionTreeState) return <RecursionTreeVisualizer state={step.recursionTreeState} stepNumber={step.stepNumber} />;
+  if (step.gridState?.grid?.length) return <GridVisualizer state={step.gridState} stepNumber={step.stepNumber} />;
   if (step.graphState?.nodes?.length) return <GraphVisualizer nodes={step.graphState.nodes} edges={step.graphState.edges ?? []} stepNumber={step.stepNumber} />;
   if (step.treeState) return <TreeVisualizer treeData={step.treeState} stepNumber={step.stepNumber} />;
   if (step.dpState?.table) return <DPVisualizer state={step.dpState} stepNumber={step.stepNumber} />;
